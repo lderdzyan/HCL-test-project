@@ -2,7 +2,7 @@ import { createTheme } from "@mui/material/styles";
 import { Source_Sans_3 } from "next/font/google";
 
 const sourceSans = Source_Sans_3({
-  weight: ["300", "400", "500", "600", "700", "800", "900"],
+  weight: ["300", "300", "500", "600", "700", "800", "900"],
   subsets: ["latin"],
 });
 
