@@ -1,0 +1,112 @@
+name: "Frontend - Destroy Micro-Applications"
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: "Choose the version"
+        required: true
+        default: "dev"
+      instance:
+        type: choice
+        description: "Choose the instance"
+        required: true
+        default: "dev"
+        options:
+          - dev
+          - ua
+          - preprod
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  getting-applications-zips:
+    name: Resolve inputs and list Micro-Applications
+    outputs:
+      instance: ${{ steps.resolve.outputs.instance }}
+      version: ${{ steps.resolve.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Resolve version and instance inputs
+        id: resolve
+        shell: bash
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "instance=${{ inputs.instance }}" >> $GITHUB_OUTPUT
+          else
+              echo "version=$TAG" >> $GITHUB_OUTPUT
+              echo "instance=ua" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Assuming federated role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Federal
+
+          
+      - name: Check version existence
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if aws s3 ls "s3://${{ secrets.BUCKET_NAME }}/frontend/${{ steps.resolve.outputs.version }}/" > /dev/null 2>&1; then
+            echo "::notice::Version exists."
+          else
+            echo "::error::Wrong version number: ${{ steps.resolve.outputs.version }}"
+            exit 1
+          fi
+
+  destroying-frontend:
+    name: Destroying frontend
+    needs: getting-applications-zips
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        
+      - name: Assume main role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Federal
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Chain deploy role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_WORKER_ROLE_ARN }}
+          role-session-name: Secondary
+          role-chaining: true
+      
+      - name: Terraform Init (with backend config)
+        run: |
+          cd deployments/frontend
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=frontend-${{ needs.getting-applications-zips.outputs.instance }}/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}"
+
+      - name: Terraform Destroy
+        run: |
+            cd deployments/frontend
+            terraform destroy -auto-approve
+        env:
+            TF_VAR_environment: ${{ needs.getting-applications-zips.outputs.instance }}
+            AWS_REGION: ${{ vars.AWS_REGION }}
