@@ -97,7 +97,7 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v4
-        
+
       - name: Terraform Init (with backend config)
         run: |
           cd deployments/frontend
@@ -111,5 +111,7 @@ jobs:
             cd deployments/frontend
             terraform destroy -auto-approve
         env:
-            TF_VAR_environment: ${{ needs.getting-applications-zips.outputs.instance }}
-            AWS_REGION: ${{ vars.AWS_REGION }}
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+          TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
+          TF_VAR_environment: ${{ needs.getting-applications-zips.outputs.instance }}
+          TF_VAR_node_version: 22
