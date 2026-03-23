@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "my-bucket-policy-document" {
     ]
 
     resources = [
-      "${aws_s3_bucket.my-s3.bucket.arn}/*",
+      "${aws_s3_bucket.my-s3.arn}/*",
     ]
 
     condition {
@@ -88,11 +88,10 @@ locals {
 
 resource "aws_s3_object" "apps" {
   for_each = { for f in local.files : f => f }
-  bucket = aws_s3_bucket.my-s3.bucket.id
-  key    = each.value
-  source = "../apps/${each.value}"
+  bucket   = aws_s3_bucket.my-s3.id
+  key      = each.key
+  source   = "../../apps/${each.value}" 
 }
-
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
     domain_name              = aws_s3_bucket.my-s3.bucket_regional_domain_name
@@ -196,7 +195,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 # }
 resource "null_resource" "cf_invalidate" {
   triggers = {
-    run_id = timestamp()
+    files_hash = filesha256("../../apps")
   }
 
   provisioner "local-exec" {
@@ -204,7 +203,6 @@ resource "null_resource" "cf_invalidate" {
   }
 
   depends_on = [
-    aws_cloudfront_distribution.s3_distribution,
-    null_resource.sync_apps
+    aws_cloudfront_distribution.s3_distribution
   ]
 }
