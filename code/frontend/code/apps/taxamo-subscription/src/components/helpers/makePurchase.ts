@@ -51,7 +51,7 @@ export function makePurchase(userInfo: IUserInfo) {
     Taxamo.initialize("public_test_kf4VRs79lBxtA7cir14JKAW1EGIIgk6MAw8WzNy1F-w"); // TODO change
 
 
-    // public_test_kf4VRs79lBxtA7cir14JKAW1EGIIgk6MAw8   WzNy1F-w  TEST
+    // public_tes   t_kf4VRs79lBxtA7cir14JKAW1EGIIgk6MAw8   WzNy1F-w  TEST
 
     const transaction = {
       buyer_email: email,

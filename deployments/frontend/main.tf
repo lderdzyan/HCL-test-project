@@ -83,14 +83,14 @@ EOF
 }
 
 locals {
-  files = fileset("../../apps", "**")
+  files = fileset("../apps", "**")
 }
 
 resource "aws_s3_object" "apps" {
   for_each = { for f in local.files : f => f }
   bucket   = aws_s3_bucket.my-s3.id
   key      = each.key
-  source   = "../../apps/${each.value}" 
+  source   = "../apps/${each.value}" 
 }
 resource "aws_cloudfront_distribution" "s3_distribution" {
   origin {
@@ -195,7 +195,7 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 # }
 resource "null_resource" "cf_invalidate" {
   triggers = {
-    files_hash = filesha256("../../apps")
+    files_hash = filesha256("../apps")
   }
 
   provisioner "local-exec" {
