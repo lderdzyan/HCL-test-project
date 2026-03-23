@@ -193,9 +193,9 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 #     evaluate_target_health = false
 #   }
 # }
-resource "null_resource" "cf_invalidate" {
+resource "null_resource" "sync_apps" {
   triggers = {
-    files_hash = filesha256("../apps")
+    files_hash = join("", [for f in locals.app_files : filesha256("../apps/${f}")])
   }
 
   provisioner "local-exec" {
