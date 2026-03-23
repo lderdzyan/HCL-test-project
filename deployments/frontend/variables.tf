@@ -18,12 +18,12 @@ variable "node_version" {
   type        = string 
 }
 
-variable "domain_zone" {
-  description = "Route53 hosted zone name "
-  type        = string
-}
+# variable "domain_zone" {
+#   description = "Route53 hosted zone name "
+#   type        = string
+# }
 
-variable "domain" {
-  description = "Full domain"
-  type        = string
-}
+# variable "domain" {
+#   description = "Full domain"
+#   type        = string
+# }
