@@ -18,7 +18,7 @@ data "aws_iam_policy_document" "my-bucket-policy-document" {
     ]
 
     resources = [
-      "${aws_s3_bucket.b.arn}/*",
+      "${aws_s3_bucket.my-s3.bucket.arn}/*",
     ]
 
     condition {
@@ -88,7 +88,7 @@ locals {
 
 resource "aws_s3_object" "apps" {
   for_each = { for f in local.files : f => f }
-  bucket = aws_s3_bucket.origin.id
+  bucket = aws_s3_bucket.my-s3.bucket.id
   key    = each.value
   source = "../apps/${each.value}"
 }
@@ -189,8 +189,8 @@ resource "aws_cloudfront_distribution" "s3_distribution" {
 #   type    = "A"
 
 #   alias {
-#     name                   = aws_cloudfront_distribution.s3.domain_name
-#     zone_id                = aws_cloudfront_distribution.s3.hosted_zone_id
+#     name                   = aws_cloudfront_distribution.s3_distribution.domain_name
+#     zone_id                = aws_cloudfront_distribution.s3_distribution.hosted_zone_id
 #     evaluate_target_health = false
 #   }
 # }
@@ -200,11 +200,11 @@ resource "null_resource" "cf_invalidate" {
   }
 
   provisioner "local-exec" {
-    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.s3.id} --paths '/*'"
+    command = "aws cloudfront create-invalidation --distribution-id ${aws_cloudfront_distribution.s3_distribution.id} --paths '/*'"
   }
 
   depends_on = [
-    aws_cloudfront_distribution.s3,
+    aws_cloudfront_distribution.s3_distribution,
     null_resource.sync_apps
   ]
 }
