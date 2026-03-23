@@ -1,0 +1,138 @@
+name: "Frontend - Build and Archive Micro-Applications"
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types:
+      - closed
+    paths:
+      - "code/frontend/code/**"
+      - "!code/frontend/**/*.md"
+  push:
+    tags:
+      - "v*"
+      - "hotfix*"
+
+env:
+  NODE_VERSION: 20
+  PNPM_VERSION: 10
+permissions:
+  id-token: write
+  contents: write
+
+
+jobs:
+  getting-applications-names:
+    name: Getting applications names
+    defaults:
+      run:
+        working-directory: ./code/frontend/code/
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || 
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) 
+    runs-on: ubuntu-latest
+    outputs:
+      apps: ${{ steps.get-frontend-apps.outputs.apps }}
+    steps:
+      - name: Checkout dev
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Checkout tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Create Release for Tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
+          generate_release_notes: true
+
+      - name: Setup Pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: pnpm
+          cache-dependency-path: ./code/frontend/
+
+      - run: pnpm install --frozen-lockfile
+      
+      - name: Get Frontend App Names
+        id: get-frontend-apps
+        run: |
+          cd ./apps
+          APP_ARRAY=()
+          for f in *; do
+            [ -e "$f" ] || continue
+            APP_ARRAY+=("\"$f\"")
+          done
+          IFS=,
+          JSON="[${APP_ARRAY[*]}]"
+          echo "apps=$JSON" >> $GITHUB_OUTPUT
+          echo $JSON
+
+  upload-app-s3:
+    name: Build application & upload to S3
+    needs: getting-applications-names
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: ${{ fromJSON(needs.getting-applications-names.outputs.apps) }}
+    defaults:
+      run:
+        working-directory: ./code/frontend/code/
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Install deps
+        run: |
+          pnpm install
+
+      - name: Build frontend
+        run: |
+          pnpm turbo build --filter=${{ matrix.app }}
+          
+      - name: Assuming federated role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Federal
+
+      - name: Zip built Apps
+        run: |
+          cd ./apps/${{ matrix.app }}/build
+          cp ../bootstrapjs.sh .
+          zip -r ${{ matrix.app }}.zip .
+
+
+      - name: Upload Apps to S3 (dev)
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          aws s3 cp "./apps/${{ matrix.app }}/build/${{ matrix.app }}.zip" s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/frontend/dev/${{ matrix.app }}.zip
+
+      - name: Upload Apps to S3 (tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          aws s3 cp "./apps/${{ matrix.app }}/build/${{ matrix.app }}.zip" s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/frontend/${GITHUB_REF#refs/tags/}/${{ matrix.app }}.zip
+
+
+      

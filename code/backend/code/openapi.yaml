@@ -1,0 +1,2183 @@
+openapi: '3.0.3'
+
+info:
+  version: 1.0.0
+  title: MOSS API documentation
+  description: Documentation for MOSS API backend.
+tags:
+  - name: General
+    description: General endpoints
+  - name: Publish
+    description: SNS->SQS->Lambda endpoints
+  - name: Authentication
+    description: Authentication endpoints
+  - name: Survey answer
+    description: Survey answer endpoints
+  - name: User
+    description: User related endpoints
+  - name: Reports
+    description: Reports related endpoints
+  - name: Applications
+    description: Application endpoints
+paths:
+  /api/publish/auth/register:
+    post:
+      description: Person registration
+      tags:
+        - Publish
+      requestBody:
+        $ref: '#/components/requestBodies/Register'
+      responses:
+        default:
+          $ref: '#/components/responses/MessageReceived'
+
+  /api/publish/survey/answer:
+    post:
+      description: Save survey answers
+      tags:
+        - Publish
+      requestBody:
+        $ref: '#/components/requestBodies/SaveSurvey'
+      responses:
+        default:
+          $ref: '#/components/responses/MessageReceived'
+
+  /api/publish/page/tracking:
+    post:
+      description: Page visit tracking
+      tags:
+        - Publish
+      requestBody:
+        $ref: '#/components/requestBodies/PageTracking'
+      responses:
+        default:
+          $ref: '#/components/responses/MessageReceived'
+
+  /api/publish/page/error:
+    post:
+      description: GUI javascript error
+      tags:
+        - Publish
+      requestBody:
+        $ref: '#/components/requestBodies/GuiError'
+      responses:
+        default:
+          $ref: '#/components/responses/MessageReceived'
+
+  /api/auth/verifyEmailCountry:
+    post:
+      description: To verify email existence and country support
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyEmailCountry'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/initVisitor:
+    post:
+      description: Initialize new visitor
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/Empty'
+      responses:
+        '200':
+          $ref: '#/components/responses/InitVisitor'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/auth/verifyCode:
+    post:
+      description: TOTP code verification
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyCode'
+      responses:
+        '200':
+          $ref: '#/components/responses/VerifyCode'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/verifyAuth3:
+    post:
+      description: TOTP code and password verification
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyAuth3'
+      responses:
+        '200':
+          $ref: '#/components/responses/VerifyAuth3'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/login:
+    post:
+      description: User login
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/Login'
+      responses:
+        '200':
+          $ref: '#/components/responses/Login'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/forgotPassword:
+    post:
+      description: Forgot password
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/ForgotPassword'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/auth/resendTotp:
+    post:
+      description: Resend TOTP code
+      tags:
+        - Authentication
+      requestBody:
+        $ref: '#/components/requestBodies/ResendTotp'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/v2/guest/subscribe:
+    post:
+      description: Save user information for not allowed countries
+      tags:
+        - Guest
+      requestBody:
+        $ref: '#/components/requestBodies/UserInformation'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+    
+  /api/v2/auth/verifyEmail:
+    post:
+      description: Check if there is a user with email
+      tags:
+        - Authentication Version 2
+      requestBody:
+        $ref: '#/components/requestBodies/CheckEmail'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/v2/survey/answers/payed:
+    post:
+      description: Set paymentInProgress status in survey answer
+      tags:
+        - Survey answer Version 2
+      requestBody:
+        $ref: '#/components/requestBodies/SurveyAnswerStatus'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+
+  /api/survey/answers:
+    post:
+      description: Load current person surveys' answers
+      tags:
+        - Survey answer
+      requestBody:
+        $ref: '#/components/requestBodies/Empty'
+      responses:
+        '200':
+          $ref: '#/components/responses/Answers'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/survey/answer:
+    post:
+      description: Get answer by answerId
+      tags:
+        - Survey answer
+      requestBody:
+        $ref: '#/components/requestBodies/AnswerId'
+      responses:
+        '200':
+          $ref: '#/components/responses/Answer'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/taxamo/response/save:
+    post:
+      description: Save taxamo response data in db
+      tags:
+        - Taxamo response
+      requestBody:
+        $ref: '#/components/requestBodies/TaxamoResponse'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /api/survey/result:
+    post:
+      description: Get answer result by answerId
+      tags:
+        - Survey answer
+      requestBody:
+        $ref: '#/components/requestBodies/AnswerId'
+      responses:
+        '200':
+          $ref: '#/components/responses/AnswerResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '425':
+          $ref: '#/components/responses/TooEarly'
+
+  /api/user/demographic:
+    post:
+      description: Save person demographic data
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/DemographicData'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/password:
+    post:
+      description: Set user password
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/SetPassword'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/update:
+    post:
+      description: Update user profile
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateProfile'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/verifyPassword:
+    post:
+      description: Check user password match existing password
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyPassword'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/verifyEmail:
+    post:
+      description: Check user email
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyEmail'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/user/verifyActivateEmail:
+    post:
+      description: Verify and activate email
+      tags:
+        - User
+      requestBody:
+        $ref: '#/components/requestBodies/VerifyActivateEmail'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/list:
+    post:
+      description: Get generated and saved report list of given type
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/ReportList'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportListResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/brandAndComms:
+    post:
+      description: Branding and Comms report
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/BrandAndCommsReport'
+      responses:
+        '200':
+          description: 'Report in csv or json format.'
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+
+  /api/reports/loginData:
+    post:
+      description: Generate login data report
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/LoginReport'
+      responses:
+        '200':
+          description: 'Report in csv or json format.'
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+
+  /api/reports/momit:
+    post:
+      description: Momit report
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/MomitReport'
+      responses:
+        '200':
+          description: 'Report in csv or json format.'
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+
+  /api/reports/getById:
+    post:
+      description: Get report file by id
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/Report'
+      responses:
+        '200':
+          description: 'Report in csv or json format.'
+          content:
+            text/csv:
+              schema:
+                type: string
+            application/json:
+              schema:
+                type: string
+
+  /api/reports/generate:
+    post:
+      description: Generate report async
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/ReportGenerate'
+      responses:
+        '200':
+          $ref: '#/components/responses/ReportGenerateResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/rename:
+    post:
+      description: Rename report
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/ReportRename'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/delete:
+    post:
+      description: Delete report
+      tags:
+        - Reports
+      requestBody:
+        $ref: '#/components/requestBodies/GetReport'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/preference/add:
+    post:
+      description: Save report preferences individually
+      tags:
+        - Report Preferences
+      requestBody:
+        $ref: '#/components/requestBodies/SetPreference'
+      responses:
+        '200':
+          $ref: '#/components/responses/PreferenceResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/preference/delete:
+    post:
+      description: Delete report preference data by id
+      tags:
+        - Report Preferences
+      requestBody:
+        $ref: '#/components/requestBodies/GetPreference'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/preference/update:
+    post:
+      description: Update report preference data by id
+      tags:
+        - Report Preferences
+      requestBody:
+        $ref: '#/components/requestBodies/UpdatePreference'
+      responses:
+        '200':
+          $ref: '#/components/responses/PreferenceResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/reports/preference/all:
+    post:
+      description: Get all report preferences by person id and report type
+      tags:
+        - Report Preferences
+      requestBody:
+        $ref: '#/components/requestBodies/GetReportPreference'
+      responses:
+        '200':
+          $ref: '#/components/responses/PreferenceResultList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/intranet/profile/update:
+    post:
+      description: Update intranet profile data
+      tags:
+        - Intranet Profile
+      requestBody:
+        $ref: '#/components/requestBodies/IntranetUpdateProfile'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/file/upload:
+    post:
+      description: Upload file to storage
+      tags:
+        - Files
+      requestBody:
+        $ref: '#/components/requestBodies/FileUpload'
+      responses: 
+        '200':
+            $ref: '#/components/responses/FileUploadResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/file/upload/getById:
+    post:
+      description: Get storage uploaded file
+      tags:
+        - Files
+      requestBody:
+        $ref: '#/components/requestBodies/GetFileUPload'
+      responses:
+        '200':
+          description: Getting file
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/app:
+    post:
+      description: Create new application
+      tags:
+        - Applications
+      requestBody:
+        $ref: '#/components/requestBodies/CreateApplication'
+      responses:
+        '200':
+          $ref: '#/components/responses/Empty'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /api/version:
+    post:
+      description: Returns current version of API.
+      tags:
+        - General
+      responses:
+        '200':
+          $ref: '#/components/responses/Version'
+
+components:
+  requestBodies:
+    CreateApplication:
+      description: Create application 
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - app
+                        properties:
+                          u:
+                            type: object
+                            required:
+                            - name
+                            - path
+                            properties:
+                              name:
+                                type: string
+                              path:
+                                type: string
+    TaxamoResponse:
+      description: Taxamo response object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - t
+                        properties:
+                          t:
+                            type: object
+                            description: object returned by taxamo
+    GetFileUPload:
+      description: Get uploaded file object
+      content: 
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - f
+                        properties:
+                          f:
+                            type: object
+                            required:
+                            - id
+                            properties:
+                              id:
+                                type: string
+    FileUpload:
+      description: File uplaod object
+      content: 
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              personId:
+                type: string
+                format: cuid
+              fileType:
+                type: string
+                enum: [avatarImg, spokenNameAudio]
+              file:
+                 type: string
+                 format: binary
+    IntranetUpdateProfile:
+      description: Update profile payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - g
+                        properties:
+                          g:
+                            type: object
+                            required: 
+                              - firstName
+                              - lastName
+                              - username
+                            properties:
+                              firstName:
+                                type: string
+                              lastName:
+                                type: string
+                              username:
+                                type: string
+                              middleName:
+                                type: string
+                              nickname:
+                                type: string
+                              bio:
+                                type: string
+                              image:
+                                type: string
+                                description: Id of file upload response data
+                              spokenNameAudio:
+                                type: string
+                                description: Id of file upload response data
+    UpdateProfile:
+      description: Update profile payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required: 
+                              - firstName
+                              - lastName
+                              - identity
+                              - email
+                            properties:
+                              firstName:
+                                type: string
+                              lastName:
+                                type: string
+                              identity:
+                                type: string
+                              password:
+                                type: string
+                              email:
+                                type: string
+                              mfaOptout:
+                                type: boolean
+    VerifyPassword:
+      description: Verify user password validity
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                            - identity
+                            - password
+                            properties:
+                              identity:
+                                type: string
+                              password:
+                                type: string
+    VerifyEmail:
+      description: Verify user email
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                            - email
+                            properties:
+                              email:
+                                type: string
+    VerifyActivateEmail:
+      description: Verify and activate email
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                            - email
+                            - code
+                            - identity
+                            properties:
+                              email:
+                                type: string
+                              code:
+                                type: string
+                              identity:
+                                type: string
+    BrandAndCommsReport:
+      description: Branding and Comms report payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                              - startOfDate
+                              - endOfDate
+                            properties:
+                              startOfDate:
+                                type: string
+                                description: yyyy-mm-dd format
+                              endOfDate:
+                                type: string
+                                description: yyyy-mm-dd format
+    LoginReport:
+      description: Login data report payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                              - startOfDate
+                              - endOfDate
+                            properties:
+                              startOfDate:
+                                type: string
+                                description: yyyy-mm-dd format
+                              endOfDate:
+                                type: string
+                                description: yyyy-mm-dd format
+                              status:
+                                type: string
+                                enum: [success, failed]
+    MomitReport:
+      description: Momit report payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+    ReportGenerate:
+      description: Report generation object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                              - startOfDate
+                              - endOfDate
+                              - type
+                            properties:
+                              startOfDate:
+                                type: string
+                                description: id of the file
+                              endOfDate:
+                                type: string
+                                description: downloading file format, csv or json
+                              type:
+                                type: string
+                                enum: [brandAndComms, momit, loginReport]
+                              id:
+                                type: string
+                                description: Id is set for regeneration only
+                              status:
+                                type: string
+                                enum: [success, failed]
+                                description: Status is needed only for loginReport and if it's not set to any value, that means we generate report for all statuses.
+    ReportRename:
+      description: Report rename object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                              - id
+                              - name
+                            properties:
+                              id:
+                                type: string
+                              name:
+                                type: string
+    GetReport:
+      description: Get report object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                              - id
+                            properties:
+                              id:
+                                type: string
+    Report:
+      description: Get report by id payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                              - id
+                              - format
+                            properties:
+                              id:
+                                type: string
+                                description: id of the file
+                              format:
+                                type: string
+                                description: downloading file format, csv or json
+    ReportList:
+      description: Get given type report list
+      content: 
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - r
+                        properties:
+                          r:
+                            type: object
+                            required:
+                            - reportType
+                            properties:
+                              reportType:
+                                type: string
+                                enum: [brandAndComms, momit, loginData]
+    GetReportPreference:
+      description: Get report preference objct
+      content: 
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - fp
+                        properties:
+                          p:
+                            type: object
+                            required:
+                            - reportType
+                            properties:
+                              reportType:
+                                type: string
+                                enum: [brandAndComms, momit]
+    SetPreference:
+      description: Report preference saving object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - p
+                        properties:
+                          p:
+                            type: object
+                            required:
+                              - name
+                              - reportType
+                            properties:
+                              name:
+                                type: string
+                              reportType:
+                                type: string
+                              columns:
+                                type: array
+                                items:
+                                  type: string
+                              sortBy:
+                                type: string
+                              sortType:
+                                type: string
+                                enum: [asc, desc]
+    GetPreference:
+      description: Report preference getting object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - p
+                        properties:
+                          p:
+                            type: object
+                            required:
+                              - id
+                            properties:
+                              id:
+                                type: string
+    UpdatePreference:
+      description: Report preference updating object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - p
+                        properties:
+                          p:
+                            type: object
+                            required:
+                              - name
+                              - id
+                            properties:
+                              id:
+                                type: string
+                              name:
+                                type: string
+                              columns:
+                                type: array
+                                items:
+                                  type: string
+                              sortBy:
+                                type: string
+                              sortType:
+                                type: string
+                                enum: [asc, desc]   
+    SetPassword:
+      description: Password setting data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - sp
+                        properties:
+                          sp:
+                            type: object
+                            required:
+                              - identity
+                              - pwd
+                            properties:
+                              identity:
+                                type: string
+                              pwd:
+                                type: string
+    DemographicData:
+      description: Person demographic data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - dd
+                        properties:
+                          dd:
+                            $ref: '#/components/schemas/DemographicData'
+    AnswerId:
+      description: Request body with answerId
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    required:
+                      - answerId
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - properties:
+                          answerId:
+                            type: string
+    ResendTotp:
+      description: Forgot password request body
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                              - identity
+                            properties:
+                              identity:
+                                type: string
+    ForgotPassword:
+      description: Forgot password request body
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                              - identity
+                            properties:
+                              identity:
+                                type: string
+    UserInformation:
+      description: User information object for notifying
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                              - firstName
+                              - lastName
+                              - email
+                              - country
+                            properties:
+                              firstName:
+                                type: string
+                              lastName:
+                                type: string
+                              email:
+                                type: string
+                              country:
+                                type: string
+                                description: country code
+                              notify:
+                                type: boolean
+                                default: false
+    CheckEmail:
+      description: Check user exists with email
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - ud
+                        properties:
+                          ud:
+                            type: object
+                            required:
+                              - email
+                            properties:
+                              email:
+                                type: string
+    SurveyAnswerStatus:
+      description: Survey answer status updating request payload
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - sa
+                        properties:
+                          sa:
+                            type: object
+                            required:
+                              - aid
+                            properties:
+                              aid:
+                                type: string
+    Login:
+      description: User login request body
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            type: object
+                            required:
+                              - identity
+                              - password
+                            properties:
+                              identity:
+                                type: string
+                              password:
+                                type: string
+    VerifyAuth3:
+      description: Password and TOTP code verification request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          v:
+                            type: object
+                            required:
+                              - code
+                              - identity
+                              - password
+                            properties:
+                              code:
+                                type: string
+                              identity:
+                                type: string
+                              password:
+                                type: string
+                              mfaOptout:
+                                type: boolean
+    VerifyCode:
+      description: TOTP code verification request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          v:
+                            type: object
+                            required:
+                              - code
+                              - identity
+                            properties:
+                              code:
+                                type: string
+                              identity:
+                                type: string
+                              reg:
+                                type: boolean
+                              mfaOptout:
+                                type: boolean
+    VerifyEmailCountry:
+      description: New user email and country verification request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          u:
+                            type: object
+                            properties:
+                              email:
+                                type: string
+                              country:
+                                type: string
+    Register:
+      description: User registration request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          p:
+                            type: object
+                            properties:
+                              email:
+                                type: string
+                              firstName:
+                                type: string
+                              lastName:
+                                type: string
+                              country:
+                                type: string
+                              marketing:
+                                type: boolean
+    SaveSurvey:
+      description: Save survey request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          sa:
+                            type: object
+                            properties:
+                              a:
+                                title: Answers
+                                type: object
+                              aid:
+                                title: Survey answer ID
+                                type: string
+                              qs:
+                                title: Survey ID
+                                type: string
+                              pat:
+                                title: Survey purchase epoch
+                                type: integer
+                              cat:
+                                title: Survey complete epoch
+                                type: integer
+                              identity:
+                                title: User identity (email or username)
+                                type: string
+    PageTracking:
+      description: Page tracking request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - p
+                        properties:
+                          p:
+                            type: object
+                            required:
+                              - uri
+                            properties:
+                              uri:
+                                title: Page URI
+                                type: string
+    GuiError:
+      description: GUI error reporting request data
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - e
+                        properties:
+                          e:
+                            type: object
+                            required:
+                              - uri
+                              - error
+                            properties:
+                              uri:
+                                title: Page URI
+                                type: string
+                              error:
+                                title: Error message
+                                type: string
+                              stacktrace:
+                                title: Exception stacktrace
+                                type: string
+    Empty:
+      description: Empty request body
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+  responses:
+    FileUploadResult:
+      description: File upload reponse
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - fileId
+                        properties:
+                          fileId:
+                            type: string
+    AnswerResult:
+      description: Answer result response
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - result
+                        properties:
+                          result:
+                            type: object
+    ReportResult:
+      description: Id for getting the file
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - reportId
+                        properties:
+                          reportId:
+                            type: string
+    PreferenceResult:
+      description: Preference result object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - preference
+                        properties:
+                          preference:
+                            $ref: '#/components/schemas/ReportPreference'
+
+    ReportGenerateResult:
+      description: Preference result object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - reportId
+                        properties:
+                          reportId:
+                            type: string
+                          createdOn:
+                            type: string
+                          status:
+                            type: string
+                          filter:
+                            type: string
+                            description: filter JSON as a string
+
+    ReportListResponse:
+      description: Brand and Comms report list result object
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          savedReport:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/ReportData'
+                          generatedReport:
+                              type: array
+                              items:
+                                $ref: '#/components/schemas/ReportData'
+
+    PreferenceResultList:
+      description: Preference result object list
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        properties:
+                          preferences:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/ReportPreference'
+    Answer:
+      description: Answered survey
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - answer
+                        properties:
+                          answer:
+                            $ref: '#/components/schemas/Answer'
+    Answers:
+      description: Answered surveys list
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - answers
+                        properties:
+                          answers:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Answer'
+    Login:
+      description: Successful login response
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                required:
+                  - mso
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - type: object
+                        required:
+                          - u
+                        properties:
+                          u:
+                            $ref: '#/components/schemas/Person'
+    VerifyAuth3:
+      description: Password and TOTP code verification response
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    required:
+                      - authLevel
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - properties:
+                          authLevel:
+                            $ref: '#/components/schemas/AuthLevel'
+    InitVisitor:
+      description: Initialize visitor and return authLevel
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    required:
+                      - authLevel
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - properties:
+                          authLevel:
+                            $ref: '#/components/schemas/AuthLevel'
+    VerifyCode:
+      description: Code verified
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    required:
+                      - authLevel
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+                      - properties:
+                          authLevel:
+                            $ref: '#/components/schemas/AuthLevel'
+                          secret:
+                            type: string
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - statusCode
+              - error
+              - message
+            properties:
+              statusCode:
+                type: integer
+              error:
+                type: string
+              message:
+                type: string
+    TooEarly:
+      description: Survey answers not processed yet
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - statusCode
+              - error
+              - message
+            properties:
+              statusCode:
+                type: integer
+                examples:
+                  - 425
+              error:
+                type: string
+              message:
+                examples:
+                  - Survey answer result not ready yet.
+                type: string
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - statusCode
+              - error
+              - message
+            properties:
+              statusCode:
+                type: integer
+              error:
+                type: string
+              message:
+                type: string
+    MessageReceived:
+      description: Published message response
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - body
+            properties:
+              body:
+                type: string
+                examples:
+                  - Message received.
+    Empty:
+      description: Empty message
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/DataTransferPayload'
+              - type: object
+                properties:
+                  mso:
+                    allOf:
+                      - $ref: '#/components/schemas/MsoData'
+    Version:
+      description: Version request response
+      content:
+        application/json:
+          schema:
+            required:
+              - version
+            properties:
+              version:
+                examples:
+                  - 1.0.0
+                type: string
+  schemas:
+    AuthLevel:
+      description: Authentication levels
+      type: string
+      enum:
+        - 0
+        - 1
+        - 2
+        - 3
+    DataTransferPayload:
+      description: Main data transfer object
+      type: object
+      properties:
+        aud:
+          title: Audience
+          description: Recipient for which the JWT is intended
+          type: string
+        jti:
+          title: JWT ID
+          description: Unique identifier; can be used to prevent the JWT from being replayed (allows a token to be used only once)
+          type: string
+        exp:
+          title: Expiration time
+          description: Time after which the JWT expires
+          type: integer
+        nbf:
+          title: Not before time
+          description: Time before which the JWT must not be accepted for processing
+          type: integer
+        iat:
+          title: Issued at time
+          description: Time at which the JWT was issued; can be used to determine age of the JWT
+          type: integer
+        aut:
+          title: Authenticated
+          description: Shows is request/response authenticated
+          type: boolean
+        sub:
+          title: Person ID
+          description: The person id
+          type: string
+    MsoData:
+      description: MSO data
+      type: object
+      required:
+        - mdtl
+        - hdtl
+      properties:
+        mdtl:
+          type: integer
+        hdtl:
+          type: integer
+    Person:
+      description: Person data
+      type: object
+      required:
+        - id
+        - firstName
+        - lastName
+        - country
+        - mfaOptout
+        - msWebAdmin
+        - authLevel
+      properties:
+        id:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        country:
+          type: string
+        mfaOptout:
+          type: boolean
+        msWebAdmin:
+          type: boolean
+        authLevel:
+          $ref: '#/components/schemas/AuthLevel'
+    Answer:
+      description: Survey answer data
+      type: object
+      required:
+        - id
+        - surveyId
+      properties:
+        id:
+          type: string
+        surveyId:
+          type: string
+        answers:
+          type: string
+        result:
+          type: string
+        completedAt:
+          type: number
+        purchaseDate:
+          type: number
+    DemographicData:
+      description: Demographic data
+      type: object
+      required:
+        - gender
+        - birthRegion
+        - age
+        - industry
+        - education
+        - occupation
+        - liveRegion
+      properties:
+        gender:
+          type: string
+        birthRegion:
+          type: string
+        age:
+          type: string
+        industry:
+          type: string
+        education:
+          type: string
+        occupation:
+          type: string
+        liveRegion:
+          type: string
+    ReportPreference:
+      description: Report Prefernce data
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        sortBy:
+          type: string
+        sortType:
+          type: string
+        columns:
+          type: string
+        personId:
+          type: string
+        reportType:
+          type: string
+    ReportData:
+      description: Report data
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        filter:
+          type: string
+        type:
+          type: stirng
