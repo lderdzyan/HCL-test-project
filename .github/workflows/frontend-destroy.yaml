@@ -94,7 +94,10 @@ jobs:
           role-to-assume: ${{ secrets.AWS_WORKER_ROLE_ARN }}
           role-session-name: Secondary
           role-chaining: true
-      
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        
       - name: Terraform Init (with backend config)
         run: |
           cd deployments/frontend
