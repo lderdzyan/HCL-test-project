@@ -59,7 +59,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
-          if aws s3 ls "s3://${{ secrets.BUCKET_NAME }}/frontend/${{ steps.resolve.outputs.version }}/" > /dev/null 2>&1; then
+          if aws s3 ls "s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/frontend/${{ steps.resolve.outputs.version }}/" > /dev/null 2>&1; then
             echo "::notice::Version exists."
           else
             echo "::error::Wrong version number: ${{ steps.resolve.outputs.version }}"
