@@ -87,6 +87,7 @@ export function makePurchase(userInfo: IUserInfo) {
               status: CheckoutStatus.COMPLETED,
               paymentResult: {
                 stripeCustomerId: fields["stripe-customer-id"],
+                
                 stripeSubscriptionId: fields["stripe-subscription-id"],
                 plan: fields["stripe-original-plan-id"],
               },
