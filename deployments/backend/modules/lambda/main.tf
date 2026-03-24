@@ -75,3 +75,4 @@ resource "aws_lambda_function" "lambda_creation" {
         variables = var.environment_variables
     }
 }
+
