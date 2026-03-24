@@ -1,0 +1,32 @@
+environment: aws
+
+api_gateway:
+  name: hcl-test-somename
+  stage: app
+
+lambda_functions:
+  - name: poc-service
+    type: SERVER
+    handler: src/functions/poc-service/index.handler
+    path: /api/poc-service/{proxy+}
+    runtime: nodejs22.x
+    policies:
+      - sid: Dynamodb
+        type: DynamoDB
+        actions:
+          - dynamodb:*
+        resources:
+          - hcl-test-somename
+
+  - name: taxamo-webhook
+    type: PUBLISH
+    handler: src/functions/taxamo-webhook/index.handler
+    path: api/publish/taxamo/webhook
+    runtime: nodejs22.x
+    policies:
+      - sid: Dynamodb
+        type: DynamoDB
+        actions:
+          - dynamodb:*
+        resources:
+          - hcl-test-somename
