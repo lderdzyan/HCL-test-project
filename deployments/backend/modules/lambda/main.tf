@@ -67,10 +67,11 @@ resource "aws_lambda_function" "lambda_creation" {
   filename = "${path.root}/lambdas/${var.name}.zip"
 
     source_code_hash = filebase64sha256("${path.root}/lambdas/${var.name}.zip")
-    depends_on = concat(
-    [aws_iam_role_policy_attachment.policy_attachment],
-    aws_iam_role_policy.custom
-    )
+  depends_on = [
+    aws_iam_role_policy_attachment.policy_attachment,
+    aws_iam_role_policy.custom,
+  ]
+
     environment {
         variables = var.environment_variables
     }
