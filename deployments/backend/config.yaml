@@ -21,7 +21,8 @@ lambda_functions:
   - name: taxamo-webhook
     type: PUBLISH
     handler: src/functions/taxamo-webhook/index.handler
-    path: api/publish/taxamo/webhook
+    path: /api/publish/taxamo/webhook
+    method: POST  
     runtime: nodejs22.x
     policies:
       - sid: Dynamodb
