@@ -1,0 +1,148 @@
+name: "Backend - Deploy Lambda Functions"
+
+on:
+  workflow_run:
+    workflows: ["Build Serverless Backend Lambda Functions"]
+    types: [completed]
+
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: "Choose the version"
+        required: true
+        default: "dev"
+      instance:
+        type: choice
+        description: "Choose the instance"
+        required: true
+        default: "dev"
+        options:
+          - dev
+          - ua
+          - preprod
+          - prod
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  resolve-inputs:
+    name: Resolve inputs and list Lambda functions
+    if: ${{ github.event_name == 'workflow_dispatch' || ( github.event.workflow_run.conclusion == 'success' && !(github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'hotfix'))) }}
+    outputs:
+      instance: ${{ steps.resolve.outputs.instance }}
+      version: ${{ steps.resolve.outputs.version }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Assuming federated role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Pulumi-Role
+
+      - name: Check version existence
+        if: github.event_name == 'workflow_dispatch'
+        shell: bash
+        run: |
+          if aws s3 ls "s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/backend/${{ inputs.version }}/" > /dev/null 2>&1; then
+            echo "::notice::Version exists."
+          else
+            echo "::error::Wrong version number: ${{ inputs.version }}"
+            exit 1
+          fi
+
+      - name: Resolve version and instance inputs
+        id: resolve
+        shell: bash
+        run: |
+          EVENT="${{ github.event.workflow_run.event }}"
+          BRANCH="${{ github.ref_name }}"
+          TAG="${{ github.event.workflow_run.head_branch }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "instance=${{ inputs.instance }}" >> $GITHUB_OUTPUT
+          elif [[ "$EVENT" == "pull_request" ]]; then
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "instance=dev" >> $GITHUB_OUTPUT
+          else
+            echo "version=$TAG" >> $GITHUB_OUTPUT
+            echo "instance=ua" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Assuming federated role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Pulumi-Role
+
+      - name: Create lambdas directory
+        run: mkdir -p ./lambdas
+
+      - name: Download Lambdas from S3 archive
+        run: aws s3 cp s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/backend/${{ steps.resolve.outputs.version }}/ ./lambdas/ --recursive
+
+
+      - name: Add Backend Infrastruture to artifact directory
+        run: |
+          cp -r ./lambdas/ ./deployments/backend/ 
+
+      - name: Upload Lambda archive as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: lambda-artifacts
+          path: ./deployments/backend/
+
+  deploy-lambda-function:
+    name: Deploy Lambda functions
+    needs: resolve-inputs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume main role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Federal
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        
+
+      - name: Chain deploy role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_WORKER_ROLE_ARN }}
+          role-session-name: Secondary
+          role-chaining: true
+      
+      - name: Download applications archive from artifact
+        uses: actions/download-artifact@v7
+        with:
+          name: lambda-artifacts
+          path: ./backend/
+
+      - name: Terraform Init (with backend config)
+        run: |
+          cd backend
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=backend-${{ needs.resolve-inputs.outputs.instance }}/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}"
+
+      - name: Terraform Apply
+        run: |
+          cd backend
+          terraform apply -auto-approve  
+        env:
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+          TF_VAR_environment: ${{ needs.resolve-inputs.outputs.instance }}
+          TF_VAR_account_id: ${{ secrets.PROFILE_ID}}
+

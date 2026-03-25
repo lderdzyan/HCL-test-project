@@ -1,0 +1,124 @@
+name: Build Serverless Backend Lambda Functions
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types:
+      - closed
+    paths:
+      - "code/msinfraops-backend/code/**"
+      - "!code/msinfraops-backend/**/*.md"
+  push:
+    tags:
+      - "v*"
+      - "hotfix*"
+      
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  getting-lambda-functions-names:
+    if: >-
+      (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || 
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')) 
+    defaults:
+      run:
+        working-directory: ./code/msinfraops-backend/code/
+    runs-on: ubuntu-latest
+    outputs:
+      lambda-names: ${{ steps.lambda-names.outputs.names }}
+    steps:
+      - name: Checkout dev
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+
+      - name: Checkout tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+
+
+      - name: Set up node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: code/msinfraops-backend/code/package-lock.json
+
+      - name: Caching Packages
+        run: |
+          npm install
+
+      - name: Grubing functions names
+        id: lambda-names
+        run: |
+          rm -r node_modules/
+          LAMBDA_ARRAY=()
+          for f in ./src/functions/* ; do
+            [ -d "$f" ] || continue
+            FILE=$(basename "$f")
+            NAME="${FILE}"
+            LAMBDA_ARRAY+=("\"$NAME\"")
+          done
+          IFS=,
+          JSON="[${LAMBDA_ARRAY[*]}]"
+          echo "names=$JSON" >> $GITHUB_OUTPUT
+          echo $JSON
+
+  upload-function-s3:
+    name: Uploading to S3
+    needs: getting-lambda-functions-names
+    defaults:
+      run:
+        working-directory: ./code/msinfraops-backend/code/
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        lambda: ${{ fromJSON(needs.getting-lambda-functions-names.outputs.lambda-names) }}
+    steps:
+      - name: Checkout dev
+        if: github.ref == 'refs/heads/dev'
+        uses: actions/checkout@v6
+        with:
+          ref: dev
+      - name: Checkout release tag
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Installing node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          
+      - name: Installing Infra dependencies
+        run: |
+          npm install
+
+      - name: Building Lambdas
+        run: |
+          npx sls package
+
+      - name: Assuming federated role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Federal
+
+      - name: Uploading Lambda (dev)
+        if: github.ref == 'refs/heads/dev'
+        run: |
+          aws s3 cp "./.serverless/${{ matrix.lambda }}.zip" s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/backend/dev/${{ matrix.lambda }}.zip
+
+      - name: Uploading Lambda (release tag)
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          aws s3 cp "./.serverless/${{ matrix.lambda }}.zip" s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/backend/${GITHUB_REF#refs/tags/}/${{ matrix.lambda }}.zip
+

@@ -1,5 +1,5 @@
 resource "aws_s3_bucket" "my-s3" {
-  bucket = var.bucket_name 
+  bucket = "${var.bucket_name}-${var.environment}"
 }
 
 data "aws_iam_policy_document" "my-bucket-policy-document" {
