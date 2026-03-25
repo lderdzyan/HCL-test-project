@@ -1,4 +1,4 @@
-name: Build Serverless Backend Lambda Functions
+name: Backend - Build Lambda Functions
 
 on:
   pull_request:
