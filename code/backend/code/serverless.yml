@@ -24,6 +24,7 @@ provider:
 
 functions:
   poc-service:
+    
     handler: src/functions/poc-service/index.handler
     events:
       - http:
