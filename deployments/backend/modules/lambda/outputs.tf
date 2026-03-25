@@ -1,9 +1,9 @@
 output "lambda_arn" {
-  value = aws_lambda_function.this.arn
+  value = aws_lambda_function.lambda_creation.arn
 }
 
 output "lambda_name" {
-  value = aws_lambda_function.this.function_name
+  value = aws_lambda_function.lambda_creation.function_name
 }
 
 output "role_arn" {
