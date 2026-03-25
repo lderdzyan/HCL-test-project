@@ -20,10 +20,10 @@ module "lambda" {
 }
 
 resource "aws_lambda_permission" "api_invoke" {
-  function_name = module.lambda.lambda_arn
+  function_name = module.lambda.lambda_name
   action        = "lambda:InvokeFunction"
   principal     = "apigateway.amazonaws.com"
-    source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*"
+  source_arn    = "arn:aws:execute-api:${var.region}:${var.account_id}:${var.api_id}/*"
 }
 
 resource "aws_apigatewayv2_integration" "lambda" {

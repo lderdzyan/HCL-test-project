@@ -13,3 +13,7 @@ output "role_arn" {
 output "role_id" {
   value = aws_iam_role.lambda_exec.id
 }
+
+output "lambda_invoke_arn" {
+  value = aws_lambda_function.lambda_creation.invoke_arn
+}
