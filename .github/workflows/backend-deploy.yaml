@@ -2,7 +2,7 @@ name: "Backend - Deploy Lambda Functions"
 
 on:
   workflow_run:
-    workflows: ["Build Serverless Backend Lambda Functions"]
+    workflows: ["Backend - Build Lambda Functions"]
     types: [completed]
 
   workflow_dispatch:
