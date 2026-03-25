@@ -28,7 +28,7 @@ module "publish_lambdas" {
 }
 
 resource "aws_cloudfront_distribution" "api_distribution" {
-  depends_on = [aws_apigatewayv2_api.http_api]  
+  depends_on = [module.http_api]
 
   comment         = "msinfraops-poc-backend-${var.environment}"
   enabled         = true
@@ -36,7 +36,7 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   price_class     = "PriceClass_200"
 
   origin {
-    domain_name = aws_apigatewayv2_api.http_api.api_endpoint  
+    domain_name = module.http_api.api_endpoint  
     origin_id   = "poc-http-api-origin-${var.environment}"
     origin_path = "/${module.http_api.stage}"
 
