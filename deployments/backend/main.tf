@@ -1,8 +1,8 @@
 module "http_api" {
   source = "./modules/api-gateway"
 
-  name  = local.config["api-gateway"]["name"]
-  stage = local.config["api-gateway"]["stage"]
+  name  = local.config["api_gateway"]["name"]
+  stage = local.config["api_gateway"]["stage"]
 }
 
 module "server_lambdas" {
