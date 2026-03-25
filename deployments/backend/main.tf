@@ -36,7 +36,7 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   price_class     = "PriceClass_200"
 
   origin {
-    domain_name = module.http_api.api_endpoint  
+    domain_name = replace(replace(module.http_api.api_endpoint, "https://", ""), "http://", "")
     origin_id   = "poc-http-api-${var.environment}"
     origin_path = "/${module.http_api.stage}"
 
