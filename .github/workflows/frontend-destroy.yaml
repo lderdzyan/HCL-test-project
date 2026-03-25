@@ -82,10 +82,9 @@ jobs:
           role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
           role-session-name: Federal
 
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+        
 
       - name: Chain deploy role
         uses: aws-actions/configure-aws-credentials@v4
@@ -94,9 +93,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_WORKER_ROLE_ARN }}
           role-session-name: Secondary
           role-chaining: true
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v4
 
       - name: Terraform Init (with backend config)
         run: |

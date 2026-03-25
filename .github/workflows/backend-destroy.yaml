@@ -82,11 +82,6 @@ jobs:
           role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
           role-session-name: Federal
 
-      - name: Install Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
       - name: Chain deploy role
         uses: aws-actions/configure-aws-credentials@v4
         with:
