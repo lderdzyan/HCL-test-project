@@ -31,7 +31,7 @@ resource "aws_sqs_queue" "queue" {
 }
 resource "aws_iam_role_policy" "sqs_consume" {
   name = "${var.lambda.name}-${var.environment}-sqs-consume"
-  role = module.lambda.lambda_role_id
+  role = module.lambda.role_id
 
   policy = jsonencode({
     Version = "2012-10-17"
