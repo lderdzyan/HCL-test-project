@@ -59,8 +59,6 @@ resource "aws_cloudfront_distribution" "api_distribution" {
     allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE"]
     cached_methods           = ["GET", "HEAD"]
     compress                 = true
-    cache_policy_id = data.aws_cloudfront_cache_policy.caching_optimized.id
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.api_policy.id
   }
 
   restrictions {
