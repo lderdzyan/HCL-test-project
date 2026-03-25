@@ -24,12 +24,57 @@ module "lambda" {
 }
 
 resource "aws_sqs_queue" "queue" {
-  name                        = "${var.lambda.name}.fifo"
+  name                        = "${var.lambda.name}-${var.environment}.fifo"
   fifo_queue                  = true
   content_based_deduplication = true
   visibility_timeout_seconds  = try(var.lambda.timeout, 30)
 }
+resource "aws_iam_role_policy" "sqs_consume" {
+  name = "${var.lambda.name}-${var.environment}-sqs-consume"
+  role = module.lambda.lambda_role_id
 
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "sqs:ReceiveMessage",
+        "sqs:DeleteMessage",
+        "sqs:GetQueueAttributes",
+        "sqs:ChangeMessageVisibility"
+      ]
+      Resource = aws_sqs_queue.queue.arn
+    }]
+  })
+}
+resource "aws_iam_role" "apigw_sqs" {
+  count = local.has_path ? 1 : 0
+  name  = "${var.lambda.name}-${var.environment}-apigw-sqs-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect    = "Allow"
+      Action    = "sts:AssumeRole"
+      Principal = { Service = "apigateway.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "apigw_sqs" {
+  count = local.has_path ? 1 : 0
+  name  = "${var.lambda.name}-${var.environment}-apigw-sqs-policy"
+  role  = aws_iam_role.apigw_sqs[0].id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["sqs:SendMessage"]
+      Resource = aws_sqs_queue.queue.arn
+    }]
+  })
+}
 resource "aws_lambda_event_source_mapping" "sqs" {
   event_source_arn = aws_sqs_queue.queue.arn
   function_name    = module.lambda.lambda_arn
@@ -39,7 +84,7 @@ resource "aws_lambda_event_source_mapping" "sqs" {
 resource "aws_sns_topic" "topic" {
   count = local.has_path ? 0 : 1
 
-  name                        = "${var.lambda.name}.fifo"
+  name                        = "${var.lambda.name}-${var.environment}.fifo"
   fifo_topic                  = true
   content_based_deduplication = true
 }
@@ -74,7 +119,7 @@ resource "aws_apigatewayv2_integration" "sqs" {
   api_id                = var.api_id
   integration_type      = "AWS_PROXY"
   integration_subtype   = "SQS-SendMessage"
-  payload_format_version = "1.0"
+  credentials_arn       = aws_iam_role.apigw_sqs[0].arn 
   request_parameters = {
     QueueUrl               = aws_sqs_queue.queue.url
     MessageBody            = "$request.body"

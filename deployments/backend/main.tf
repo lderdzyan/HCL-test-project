@@ -37,7 +37,7 @@ resource "aws_cloudfront_distribution" "api_distribution" {
 
   origin {
     domain_name = module.http_api.api_endpoint  
-    origin_id   = "poc-http-api-origin-${var.environment}"
+    origin_id   = "poc-http-api-${var.environment}"
     origin_path = "/${module.http_api.stage}"
 
     custom_origin_config {
@@ -49,7 +49,7 @@ resource "aws_cloudfront_distribution" "api_distribution" {
   }
 
   default_cache_behavior {
-    target_origin_id         = "poc-http-api-origin-${var.environment}"
+    target_origin_id = "poc-http-api-${var.environment}"
     viewer_protocol_policy   = "redirect-to-https"
     allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE"]
     cached_methods           = ["GET", "HEAD"]
