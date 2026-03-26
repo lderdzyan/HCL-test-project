@@ -1,0 +1,42 @@
+config:
+  tables:
+    - name: msinfraops-poc
+      billingMode: PAY_PER_REQUEST
+      hashKey: _pk
+      rangeKey: _sk
+      enableRecovery: false
+
+      attributes:
+        - name: _pk
+          type: S
+        - name: _sk
+          type: S
+        - name: attr1
+          type: S
+        - name: attr2
+          type: S
+        - name: attr3
+          type: S
+        - name: attr4
+          type: N
+
+      globalSecondaryIndex:
+        - name: attr1-index
+          hashKey: _sk
+          rangeKey: attr1
+          projectionType: ALL
+
+        - name: attr2-index
+          hashKey: _sk
+          rangeKey: attr2
+          projectionType: ALL
+
+        - name: attr3-index
+          hashKey: _sk
+          rangeKey: attr3
+          projectionType: ALL
+
+        - name: attr4-index
+          hashKey: _sk
+          rangeKey: attr4
+          projectionType: ALL
