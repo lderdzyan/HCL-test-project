@@ -1,6 +1,6 @@
 config:
   tables:
-    - name: msinfraops-poc
+    - name: hcl-test-database
       billingMode: PAY_PER_REQUEST
       hashKey: _pk
       rangeKey: _sk
