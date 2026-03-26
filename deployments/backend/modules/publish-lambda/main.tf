@@ -122,7 +122,7 @@ resource "aws_apigatewayv2_integration" "sqs" {
   credentials_arn       = aws_iam_role.apigw_sqs[0].arn
   request_parameters = {
     QueueUrl               = aws_sqs_queue.queue.url
-    MessageBody            = "{\"requestId\":\"$context.requestId\",\"body\":$request.body}"
+    MessageBody            = "$request.body"        
     MessageGroupId         = "default"
     MessageDeduplicationId = "$context.requestId"
   }
