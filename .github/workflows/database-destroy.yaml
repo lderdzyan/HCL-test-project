@@ -1,17 +1,6 @@
 name: Destroy Database Infrastructure
 
 on:
-  pull_request:
-    branches:
-      - dev
-    types:
-      - closed
-    paths:
-      - "deployments/database/**"
-  push:
-    tags:
-      - "v*"
-
   workflow_dispatch:
     inputs:
       version:
@@ -29,9 +18,10 @@ on:
           - ua
           - preprod
           - prod
+
 permissions:
-  contents: write
   id-token: write
+  contents: read
 
 jobs:
   resolve-inputs:
