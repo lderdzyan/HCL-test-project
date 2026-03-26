@@ -14,7 +14,7 @@ lambda_functions:
         actions:
           - dynamodb:*
         resources:
-          - hcl-test-somename
+          - hcl-test-database
 
   - name: taxamo-webhook
     type: PUBLISH
@@ -28,4 +28,4 @@ lambda_functions:
         actions:
           - dynamodb:*
         resources:
-          - hcl-test-somename
+          - hcl-test-database
