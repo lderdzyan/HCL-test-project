@@ -1,4 +1,4 @@
-name: Deploy Database Infrastructure
+name: Destroy Database Infrastructure
 
 on:
   pull_request:
@@ -63,9 +63,6 @@ jobs:
   deploy-database:
     name: Deploy Database infrastructure
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./deployments
     needs: resolve-inputs
     steps:
       - name: Checkout code
