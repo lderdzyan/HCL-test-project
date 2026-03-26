@@ -20,7 +20,6 @@ resource "aws_dynamodb_table" "tables" {
 
   name = "${each.value.name}-${var.environment}"
   billing_mode = each.value.billingMode
-
   hash_key  = each.value.hashKey
   range_key = each.value.rangeKey
 
