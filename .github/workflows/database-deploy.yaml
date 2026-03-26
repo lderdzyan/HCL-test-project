@@ -65,9 +65,6 @@ jobs:
   deploy-database:
     name: Deploy Database infrastructure
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./deployments
     needs: resolve-inputs
     steps:
       - name: Checkout code
@@ -93,7 +90,7 @@ jobs:
 
       - name: Terraform Init (with backend config)
         run: |
-          cd database
+          cd deployments/database
           terraform init \
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
             -backend-config="key=database-${{ needs.resolve-inputs.outputs.instance }}/terraform.tfstate" \
@@ -101,7 +98,7 @@ jobs:
 
       - name: Terraform Apply
         run: |
-          cd database
+          cd deployments/database
           terraform apply -auto-approve  
         env:
           TF_VAR_aws_region: ${{ vars.AWS_REGION }}
