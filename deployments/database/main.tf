@@ -1,6 +1,6 @@
 locals {
   tables = [
-    for t in yamldecode(file("${path.module}/database.yaml")).config.tables : {
+    for t in yamldecode(file("${path.module}/config.yaml")).config.tables : {
       name          = t.name
       billingMode   = t.billingMode
       hashKey       = t.hashKey
