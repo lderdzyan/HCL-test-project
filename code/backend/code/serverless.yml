@@ -30,5 +30,6 @@ functions:
           method: ANY
           path: "api/poc-service/{proxy+}"
           cors: true
+          
   taxamo-webhook:
     handler: src/functions/taxamo-webhook/index.handler
