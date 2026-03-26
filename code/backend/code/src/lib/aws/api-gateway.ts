@@ -9,7 +9,6 @@ export const authenticate = (config: IConfig) => async (request: Hapi.Request, h
   if (apiKey == null) {
     throw Boom.unauthorized('API Key required.');
   }
-// comment
   const response = await apigClient.send(new GetApiKeysCommand({ includeValues: true }));
 
   if (response.items != null && response.items.length > 0) {
