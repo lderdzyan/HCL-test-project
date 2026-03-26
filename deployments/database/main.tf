@@ -33,7 +33,6 @@ resource "aws_dynamodb_table" "tables" {
 
 dynamic "global_secondary_index" {
   for_each = each.value.gsi
-
   content {
     name            = global_secondary_index.value.name
     hash_key        = global_secondary_index.value.hashKey
