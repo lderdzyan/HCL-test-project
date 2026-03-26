@@ -41,7 +41,6 @@ dynamic "global_secondary_index" {
     hash_key        = global_secondary_index.value.hashKey
     range_key       = lookup(global_secondary_index.value, "rangeKey", null)
     projection_type = global_secondary_index.value.projectionType
-
     read_capacity  = each.value.billingMode == "PROVISIONED" ? lookup(global_secondary_index.value, "readCapacity", null) : null
     write_capacity = each.value.billingMode == "PROVISIONED" ? lookup(global_secondary_index.value, "writeCapacity", null) : null
   }
