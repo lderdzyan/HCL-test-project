@@ -24,6 +24,7 @@ permissions:
 
 jobs:
   getting-applications-names:
+    environment: dev
     name: Getting applications names
     defaults:
       run:
@@ -84,6 +85,7 @@ jobs:
           echo $JSON
 
   upload-app-s3:
+    environment: dev
     name: Build application & upload to S3
     needs: getting-applications-names
     runs-on: ubuntu-latest
