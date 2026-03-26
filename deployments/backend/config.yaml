@@ -1,5 +1,3 @@
-environment: aws
-
 api_gateway:
   name: hcl-test-somename
   stage: app

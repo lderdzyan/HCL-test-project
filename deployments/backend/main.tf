@@ -26,12 +26,7 @@ module "publish_lambdas" {
   region      = var.aws_region
   account_id  = var.account_id
 }
-data "aws_cloudfront_origin_request_policy" "api_policy" {
-  name = "AllViewerExceptHostHeader"
-}
-data "aws_cloudfront_cache_policy" "caching_optimized" {
-  name = "CachingOptimized"
-}
+
 resource "aws_cloudfront_distribution" "api_distribution" {
   depends_on = [module.http_api]
 
@@ -59,8 +54,13 @@ resource "aws_cloudfront_distribution" "api_distribution" {
     allowed_methods          = ["GET", "HEAD", "OPTIONS", "PUT", "PATCH", "POST", "DELETE"]
     cached_methods           = ["GET", "HEAD"]
     compress                 = true
-    cache_policy_id = data.aws_cloudfront_cache_policy.caching_optimized.id
-    origin_request_policy_id = data.aws_cloudfront_origin_request_policy.api_policy.id
+    forwarded_values {
+      query_string = false
+
+      cookies {
+        forward = "none"
+      }
+    }
   }
 
   restrictions {

@@ -75,12 +75,12 @@ jobs:
             echo "instance=ua" >> $GITHUB_OUTPUT
           fi
 
-      - name: Assuming federated role
+      - name: Assume main role
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-region: ${{ vars.AWS_REGION }}
           role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
-          role-session-name: Pulumi-Role
+          role-session-name: Federal
 
       - name: Create lambdas directory
         run: mkdir -p ./lambdas
