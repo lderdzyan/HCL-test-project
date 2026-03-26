@@ -18,7 +18,7 @@ config:
         - name: attr3
           type: S
         - name: attr4
-          type: N
+          type: "N"
 
       globalSecondaryIndex:
         - name: attr1-index
