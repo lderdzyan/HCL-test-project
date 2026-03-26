@@ -1,0 +1,108 @@
+name: Deploy Database Infrastructure
+
+on:
+  pull_request:
+    branches:
+      - dev
+    types:
+      - closed
+    paths:
+      - "infra/database/**"
+  push:
+    tags:
+      - "v*"
+
+  workflow_dispatch:
+    inputs:
+      version:
+        type: string
+        description: "Choose the version"
+        required: true
+        default: "dev"
+      instance:
+        type: choice
+        description: "Choose the instance"
+        required: true
+        default: "dev"
+        options:
+          - dev
+          - ua
+          - preprod
+          - prod
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  resolve-inputs:
+    name: Resolve version and instance
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' ||  !(github.event == 'push' && startsWith(github.ref, 'refs/tags/hotfix')) }}
+    outputs:
+      instance: ${{ steps.resolve.outputs.instance }}
+      version: ${{ steps.resolve.outputs.version }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Resolve version and instance inputs
+        id: resolve
+        shell: bash
+        run: |
+          TAG="${{ github.ref_name }}"
+
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+            echo "instance=${{ inputs.instance }}" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "instance=dev" >> $GITHUB_OUTPUT
+          else
+              echo "version=$TAG" >> $GITHUB_OUTPUT
+              echo "instance=ua" >> $GITHUB_OUTPUT
+          fi
+
+  deploy-database:
+    name: Deploy Database infrastructure
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./deployments
+    needs: resolve-inputs
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v4
+
+      - name: Assume main role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_FED_ROLE_ARN }}
+          role-session-name: Federal
+
+      - name: Chain deploy role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-region: ${{ vars.AWS_REGION }}
+          role-to-assume: ${{ secrets.AWS_WORKER_ROLE_ARN }}
+          role-session-name: Secondary
+          role-chaining: true
+
+      - name: Terraform Init (with backend config)
+        run: |
+          cd database
+          terraform init \
+            -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
+            -backend-config="key=database-${{ needs.resolve-inputs.outputs.instance }}/terraform.tfstate" \
+            -backend-config="region=${{ vars.AWS_REGION }}"
+
+      - name: Terraform Apply
+        run: |
+          cd database
+          terraform apply -auto-approve  
+        env:
+          TF_VAR_aws_region: ${{ vars.AWS_REGION }}
+          TF_VAR_environment: ${{ needs.resolve-inputs.outputs.instance }}

@@ -119,15 +119,14 @@ resource "aws_apigatewayv2_integration" "sqs" {
   api_id                = var.api_id
   integration_type      = "AWS_PROXY"
   integration_subtype   = "SQS-SendMessage"
-  credentials_arn       = aws_iam_role.apigw_sqs[0].arn 
+  credentials_arn       = aws_iam_role.apigw_sqs[0].arn
   request_parameters = {
     QueueUrl               = aws_sqs_queue.queue.url
-    MessageBody            = "$request.body"
+    MessageBody            = "{\"requestId\":\"$context.requestId\",\"body\":$request.body}"
     MessageGroupId         = "default"
     MessageDeduplicationId = "$context.requestId"
   }
 }
-
 resource "aws_apigatewayv2_route" "route" {
   count     = local.has_path ? 1 : 0
   api_id    = var.api_id
