@@ -1,13 +1,14 @@
 locals {
   tables = [
     for t in yamldecode(file("${path.module}/config.yaml")).config.tables : {
-      name          = t.name
-      billingMode   = t.billingMode
-      hashKey       = t.hashKey
-      rangeKey      = lookup(t, "rangeKey", null)
-      attributes    = t.attributes
-      gsi           = lookup(t, "globalSecondaryIndex", [])
-      enableRecovery = t.enableRecovery
+      name           = t.name
+      billingMode    = t.billingMode
+      hashKey        = t.hashKey
+      rangeKey       = lookup(t, "rangeKey", null)
+      attributes     = lookup(t, "attributes", [])
+      gsi            = lookup(t, "globalSecondaryIndex", [])
+      enableRecovery = lookup(t, "enableRecovery", false)
+      ttl            = lookup(t, "ttl", null)
     }
   ]
 }
@@ -42,7 +43,13 @@ dynamic "global_secondary_index" {
     write_capacity = each.value.billingMode == "PROVISIONED" ? lookup(global_secondary_index.value, "writeCapacity", null) : null
   }
 }
-
+dynamic "ttl" {
+    for_each = each.value.ttl != null ? [each.value.ttl] : []  
+    content {
+      attribute_name = ttl.value.attributeName
+      enabled        = ttl.value.enabled
+    }
+  }
   point_in_time_recovery {
     enabled = each.value.enableRecovery
   }
