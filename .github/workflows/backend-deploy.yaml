@@ -29,6 +29,7 @@ permissions:
 
 jobs:
   resolve-inputs:
+    environment: dev    
     name: Resolve inputs and list Lambda functions
     if: ${{ github.event_name == 'workflow_dispatch' || ( github.event.workflow_run.conclusion == 'success' && !(github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'hotfix'))) }}
     outputs:
@@ -103,6 +104,7 @@ jobs:
     name: Deploy Lambda functions
     needs: resolve-inputs
     runs-on: ubuntu-latest
+    environment: ${{ needs.resolve-inputs.outputs.instance }}
     steps:
       - name: Assume main role
         uses: aws-actions/configure-aws-credentials@v4

@@ -28,6 +28,7 @@ permissions:
 
 jobs:
   getting-applications-zips:
+    environment: dev
     name: Resolve inputs and list Micro-Applications
     if: ${{ github.event_name == 'workflow_dispatch' || ( github.event.workflow_run.conclusion == 'success' && !(github.event.workflow_run.event == 'push' && startsWith(github.event.workflow_run.head_branch, 'hotfix'))) }}
     outputs:
@@ -37,7 +38,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
-
 
       - name: Resolve version and instance inputs
         id: resolve
@@ -79,16 +79,12 @@ jobs:
       - run: |
           mkdir apps
 
-
       - name: Download application archive from S3
         run: aws s3 cp s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/frontend/${{ steps.resolve.outputs.version }}/ ./apps/ --recursive
-
-
 
       - name: Add Frontend Infrastruture to artifact directory
         run: |
           cp -r ./deployments/frontend ./apps/ 
-
 
       - name: Upload applications archive as artifact
         uses: actions/upload-artifact@v4
@@ -99,6 +95,7 @@ jobs:
   deploy-application:
     name: Deploy application
     needs: getting-applications-zips
+    environment: ${{ needs.getting-applications-zips.outputs.instance }}
     runs-on: ubuntu-latest
     steps:
       - name: Assume main role
