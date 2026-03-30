@@ -148,7 +148,7 @@ jobs:
           cd frontend
           terraform init \
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
-            -backend-config="key=frontend-${{ needs.getting-applications-zips.outputs.instance }}/terraform.tfstate" \
+            -backend-config="key=frongtend-${{ needs.getting-applications-zips.outputs.instance }}/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}"
 
       - name: Terraform Apply
@@ -161,37 +161,18 @@ jobs:
           TF_VAR_environment: ${{ needs.getting-applications-zips.outputs.instance }}
           TF_VAR_node_version: 22
 
-        # - name: Get Slack UserID
-        #   if: failure()          
-        #   id: get_slack_id
-        #   uses: actions/github-script@v8
-        #   env:
-        #     SLACK_USER_MAP: ${{ secrets.SLACK_USERS_ID }}
-        #   with:
-        #     result-encoding: string
-        #     script: |
-        #       const map = JSON.parse(process.env.SLACK_USER_MAP);
-        #       const slackUserId = map[context.actor];
-              
-        #       if (!slackUserId) {
-        #         console.log(`No Slack mapping for ${context.actor}`);
-        #         return '';
-        #       }
-              
-        #       console.log(`Slack User ID for ${context.actor}: ${slackUserId}`);
-        #       return slackUserId;
 
-
-        # - name: Post text to a Slack channel
-        #   if: failure()               
-        #   uses: slackapi/slack-github-action@v2.1.1
-        #   with:
-        #     method: chat.postMessage
-        #     token: ${{ secrets.SLACK_BOT_TOKEN }}
-        #     payload: |
-        #       channel: ${{ steps.get_slack_id.outputs.result }}
-        #       text: |
-        #         ❌ Workflow failed
-        #         Workflow: ${{ github.workflow }}
-        #         Repo: ${{ github.repository }}
-        #         Actor: ${{ github.actor }}
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_ID }}
+            text: |
+              ❌ Frontend Deployment Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
+              Environment: ${{ needs.getting-applications-zips.outputs.instance }}
