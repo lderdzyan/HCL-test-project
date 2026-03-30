@@ -68,7 +68,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: ./code/frontend/code
 
-      - run: pnpm install --frozen-lockfile
+      - run: |
+          exit 1
+          pnpm install --frozen-lockfile
       
       - name: Get Frontend App Names
         id: get-frontend-apps

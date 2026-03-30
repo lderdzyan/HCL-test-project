@@ -136,7 +136,7 @@ jobs:
           cd backend
           terraform init \
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
-            -backend-config="key=backend-${{ needs.resolve-inputs.outputs.instance }}/terraform.tfstate" \
+            -backend-config="key=backelnd-${{ needs.resolve-inputs.outputs.instance }}/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}"
 
       - name: Terraform Apply
