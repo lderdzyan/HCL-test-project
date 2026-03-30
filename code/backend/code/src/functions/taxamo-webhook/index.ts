@@ -53,10 +53,11 @@ interface ITransactionPayload {
     key: string;
     custom_id: string;
   };
-  
+
   ms_order_id: string;
   ms_person_id: string;
 }
+
 const paymentObjectKeys: (keyof Payment)[] = [
   'amount',
   'billCCode',

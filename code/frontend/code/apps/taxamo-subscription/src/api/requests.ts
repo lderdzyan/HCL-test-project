@@ -14,7 +14,6 @@ export const savePaymentResult = (data: CheckoutResult) => {
     body: JSON.stringify(data.paymentResult),
   });
 };
-
 export const checkPaymentStatus = (data: { id: string }) => {
   return apiFetch<{ status: string }>("/check-payment-status", {
     method: "POST",
