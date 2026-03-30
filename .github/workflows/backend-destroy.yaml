@@ -24,7 +24,7 @@ permissions:
   contents: read
 
 jobs:
-  resolve-workflow_dispatch-inputs:
+  resolve-workflow-dispatch-inputs:
     name: Resolve inputs and list Micro-Applications
     outputs:
       instance: ${{ steps.resolve.outputs.instance }}
@@ -39,7 +39,7 @@ jobs:
         shell: bash
         run: |
           BRANCH="${{ github.ref_name }}"
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          if [[ "${{ github.event_name }}" == "workflow-dispatch" ]]; then
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
             echo "instance=${{ inputs.instance }}" >> $GITHUB_OUTPUT
           else
@@ -56,7 +56,7 @@ jobs:
 
           
       - name: Check version existence
-        if: github.event_name == 'workflow_dispatch'
+        if: github.event_name == 'workflow-dispatch'
         shell: bash
         run: |
           if aws s3 ls "s3://${{ secrets.ARCHIVE_BUCKET_NAME }}/backend/${{ steps.resolve.outputs.version }}/" > /dev/null 2>&1; then
@@ -68,10 +68,10 @@ jobs:
 
   destroying-backend:
     name: Destroying backend
-    needs: resolve-workflow_dispatch-inputs
+    needs: resolve-workflow-dispatch-inputs
+    environment: ${{ needs.resolve-workflow-dispatch-inputs.outputs.instance}}
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repository
         uses: actions/checkout@v6
         
@@ -98,7 +98,7 @@ jobs:
           cd deployments/backend
           terraform init \
             -backend-config="bucket=${{ secrets.TF_STATE_BUCKET }}" \
-            -backend-config="key=backend-${{ needs.resolve-workflow_dispatch-inputs.outputs.instance }}/terraform.tfstate" \
+            -backend-config="key=backend-${{ needs.resolve-workflow-dispatch-inputs.outputs.instance }}/terraform.tfstate" \
             -backend-config="region=${{ vars.AWS_REGION }}"
 
       - name: Terraform Destroy
@@ -107,5 +107,20 @@ jobs:
             terraform destroy -auto-approve
         env:
           TF_VAR_aws_region: ${{ vars.AWS_REGION }}
-          TF_VAR_environment: ${{ needs.resolve-workflow_dispatch-inputs.outputs.instance }}
+          TF_VAR_environment: ${{ needs.resolve-workflow-dispatch-inputs.outputs.instance }}
           TF_VAR_account_id: ${{ secrets.PROFILE_ID}}
+          
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_ID }}
+            text: |
+              ❌ Backend Destroy Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
+              Environment: ${{ needs.resolve-workflow-dispatch-inputs.outputs.instance }}

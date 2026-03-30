@@ -54,6 +54,7 @@ jobs:
     name: Deploy Database infrastructure
     runs-on: ubuntu-latest
     needs: resolve-inputs
+    environment: ${{ needs.resolve-inputs.outputs.instance}}
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
@@ -91,3 +92,18 @@ jobs:
         env:
           TF_VAR_aws_region: ${{ vars.AWS_REGION }}
           TF_VAR_environment: ${{ needs.resolve-inputs.outputs.instance }}
+      
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_ID }}
+            text: |
+              ❌ Database Destroy Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
+              Environment: ${{ needs.resolve-inputs.outputs.instance }}

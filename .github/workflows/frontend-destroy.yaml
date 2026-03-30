@@ -70,6 +70,7 @@ jobs:
     name: Destroying frontend
     needs: getting-applications-zips
     runs-on: ubuntu-latest
+    environment: ${{ needs.getting-applications-zips.outputs.instance }}
     steps:
 
       - name: Checkout repository
@@ -111,3 +112,18 @@ jobs:
           TF_VAR_bucket_name: ${{ secrets.BUCKET_NAME }}
           TF_VAR_environment: ${{ needs.getting-applications-zips.outputs.instance }}
           TF_VAR_node_version: 22
+
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_ID }}
+            text: |
+              ❌ Frontend Destroy Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
+              Environment: ${{ needs.getting-applications-zips.outputs.instance }}
