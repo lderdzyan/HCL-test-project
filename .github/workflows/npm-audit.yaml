@@ -1,0 +1,87 @@
+name: Check app npm packages for vulnerabilities
+
+on: 
+  pull_request:
+    types:
+      - ready_for_review
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs: 
+  vulnerabilities-scan:
+    name: Vulnerabilities Scan
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+          working-directory: ./code/backend/code/
+    steps:
+        - uses: actions/checkout@v6
+
+        - name: Set up node
+          uses: actions/setup-node@v4
+          with:
+            node-version: 20
+            cache: npm
+            cache-dependency-path: code/backend/code/package-lock.json
+
+        - name: Downloading NPM dependencies and auditing
+          run: |
+            WARNING_LINE=$(npm install | grep "vulnerabilities" || true)
+            npm audit --json > audit_results.json || true  
+            echo "Full npm audit output:"
+            cat audit_results.json
+
+            HIGH_SEVERITY=$(jq '.metadata.vulnerabilities.high' audit_results.json)
+            CRITICAL_SEVERITY=$(jq '.metadata.vulnerabilities.critical' audit_results.json)
+
+            echo "inch new change $HIGH_SEVERITY"
+            echo "echo text change vulnerabilities: $CRITICAL_SEVERITY"
+
+            if [ "$HIGH_SEVERITY" -gt 0 ] || [ "$CRITICAL_SEVERITY" -gt 0 ]; then
+            echo "::warning ::$WARNING_LINE"
+            npm audit || true
+            fi
+
+            if [ "$CRITICAL_SEVERITY" -gt 0 ]; then
+            echo "Critical vulnerabilities detected! Failing workflow."
+            exit 1
+            fi
+          shell: bash
+
+
+        # - name: Get Slack UserID
+        #   if: failure()          
+        #   id: get_slack_id
+        #   uses: actions/github-script@v8
+        #   env:
+        #     SLACK_USER_MAP: ${{ secrets.SLACK_USERS_ID }}
+        #   with:
+        #     result-encoding: string
+        #     script: |
+        #       const map = JSON.parse(process.env.SLACK_USER_MAP);
+        #       const slackUserId = map[context.actor];
+              
+        #       if (!slackUserId) {
+        #         console.log(`No Slack mapping for ${context.actor}`);
+        #         return '';
+        #       }
+              
+        #       console.log(`Slack User ID for ${context.actor}: ${slackUserId}`);
+        #       return slackUserId;
+
+
+        # - name: Post text to a Slack channel
+        #   if: failure()               
+        #   uses: slackapi/slack-github-action@v2.1.1
+        #   with:
+        #     method: chat.postMessage
+        #     token: ${{ secrets.SLACK_BOT_TOKEN }}
+        #     payload: |
+        #       channel: ${{ steps.get_slack_id.outputs.result }}
+        #       text: |
+        #         ❌ Workflow failed
+        #         Workflow: ${{ github.workflow }}
+        #         Repo: ${{ github.repository }}
+        #         Actor: ${{ github.actor }}
