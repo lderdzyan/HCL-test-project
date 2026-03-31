@@ -52,7 +52,6 @@ jobs:
 
       - name: Caching Packages
         run: |
-          exit 1
           npm install
 
       - name: Grubing functions names
@@ -105,7 +104,7 @@ jobs:
               Workflow: ${{ github.workflow }}
               Repo: ${{ github.repository }}
               Actor: ${{ github.actor }}
-              
+
   upload-function-s3:
     environment: dev
     name: Uploading to S3

@@ -69,7 +69,6 @@ jobs:
           cache-dependency-path: ./code/frontend/code
 
       - run: |
-          exit 1
           pnpm install --frozen-lockfile
       
       - name: Get Frontend App Names
@@ -85,7 +84,7 @@ jobs:
           JSON="[${APP_ARRAY[*]}]"
           echo "apps=$JSON" >> $GITHUB_OUTPUT
           echo $JSON
-          
+
       - name: Get Slack UserID
         if: failure()          
         id: get_slack_id

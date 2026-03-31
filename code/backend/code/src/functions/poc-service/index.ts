@@ -6,7 +6,6 @@ import { userSubscription } from './handlers/taxamo-membership/user';
 const BASE_PATH = '/api/poc-service';
 const app = new Hono().use(cors({ origin: process.env.MS_GUI_URL ?? '', credentials: true }));
 
-// comment 24
 app.post(BASE_PATH + '/taxamo/subscribe/user', userSubscription);
 
 export const handler = handle(app);
