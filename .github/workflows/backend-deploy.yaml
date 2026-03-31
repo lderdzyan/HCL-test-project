@@ -99,6 +99,21 @@ jobs:
         with:
           name: lambda-artifacts
           path: ./deployments/backend/
+          
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_ID }}
+            text: |
+              ❌ Backend Deployment Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
+              Environment: ${{ steps.resolve.outputs.instance }}
   deploy-lambda-function:
     name: Deploy Lambda functions
     needs: resolve-inputs

@@ -29,6 +29,7 @@ jobs:
     outputs:
       instance: ${{ steps.resolve.outputs.instance }}
       version: ${{ steps.resolve.outputs.version }}
+    environment: dev
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -66,6 +67,20 @@ jobs:
             exit 1
           fi
 
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ secrets.DEVOPS_SLACK_ID }}
+            text: |
+              ❌ Frontend Destroy Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
+              Environment: ${{ steps.resolve.outputs.version }}
   destroying-frontend:
     name: Destroying frontend
     needs: getting-applications-zips
