@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./code/forntend/code/
+        working-directory: ./code/frontend/code/
     steps:
       - uses: actions/checkout@v6
       
