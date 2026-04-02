@@ -34,7 +34,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: code/forntend/code/pnpm-lock.yaml
+          cache-dependency-path: code/frontend/code/pnpm-lock.yaml
 
 
 
