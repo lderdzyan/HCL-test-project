@@ -14,11 +14,12 @@ env:
 
 jobs:
   vulnerabilities-scan:
+    environment: dev
     name: Vulnerabilities Scan
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./code/forntend/code/
+        working-directory: ./code/frontend/code/
     steps:
       - uses: actions/checkout@v6
       
@@ -33,7 +34,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: pnpm
-          cache-dependency-path: code/forntend/code/pnpm-lock.yaml
+          cache-dependency-path: code/frontend/code/pnpm-lock.yaml
 
 
 
@@ -62,3 +63,37 @@ jobs:
             exit 1
             fi
         shell: bash      
+      - name: Get Slack UserID
+        if: failure()          
+        id: get_slack_id
+        uses: actions/github-script@v8
+        env:
+          SLACK_USER_MAP: ${{ secrets.SLACK_USERS_ID }}
+        with:
+          result-encoding: string
+          script: |
+            const map = JSON.parse(process.env.SLACK_USER_MAP);
+            const slackUserId = map[context.actor];
+            
+            if (!slackUserId) {
+              console.log(`No Slack mapping for ${context.actor}`);
+              return '';
+            }
+            
+            console.log(`Slack User ID for ${context.actor}: ${slackUserId}`);
+            return slackUserId;
+
+
+      - name: Post text to a Slack channel
+        if: failure()               
+        uses: slackapi/slack-github-action@v2.1.1
+        with:
+          method: chat.postMessage
+          token: ${{ secrets.SLACK_BOT_TOKEN }}
+          payload: |
+            channel: ${{ steps.get_slack_id.outputs.result }}
+            text: |
+              ❌ Pnpm Audit Workflow failed
+              Workflow: ${{ github.workflow }}
+              Repo: ${{ github.repository }}
+              Actor: ${{ github.actor }}
